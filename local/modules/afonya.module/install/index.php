@@ -1,9 +1,11 @@
 <?php
 
+use Afonya\Module\LogTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\Config\Option;
-use Bitrix\Main\EventManager;
+use Bitrix\Main\Entity\Base;
 use Bitrix\Main\IO\Directory;
+use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
 
@@ -15,13 +17,22 @@ class afonya_module extends CModule
             $arModuleVersion = [];
             include_once(__DIR__ . '/version.php');
 
-            $this->MODULE_ID = str_replace('_', '.', get_class($this));
-            $this->MODULE_VERSION = $arModuleVersion['VERSION'];
-            $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];
+            if (is_array($arModuleVersion) && array_key_exists('VERSION', $arModuleVersion)) {
+                $this->MODULE_VERSION = $arModuleVersion['VERSION'];
+                $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];
+            }
+
+            $this->MODULE_ID = str_replace('_', '.', __CLASS__);
+
             $this->MODULE_NAME = Loc::getMessage('AFONYA_NAME');
             $this->MODULE_DESCRIPTION = Loc::getMessage('AFONYA_DESCRIPTION');
+
             $this->PARTNER_NAME = Loc::getMessage('AFONYA_PARTNER_NAME');
             $this->PARTNER_URI = Loc::getMessage('AFONYA_PARTNER_URI');
+
+            $this->MODULE_SORT = 1;
+            $this->SHOW_SUPER_ADMIN_GROUP_RIGHTS = 'Y';
+            $this->MODULE_GROUP_RIGHTS = 'Y';
         }
     }
 
@@ -33,10 +44,13 @@ class afonya_module extends CModule
         global $APPLICATION;
 
         if (CheckVersion(ModuleManager::getVersion('main'), '14.00.00')) {
-            $this->InstallFiles();
-            $this->InstallDB();
-
             ModuleManager::registerModule($this->MODULE_ID);
+
+            if (Loader::includeModule($this->MODULE_ID)) {
+                $this->InstallDB();
+                $this->InstallEvents();
+                $this->InstallFiles();
+            }
 
             $this->InstallEvents();
         } else {
@@ -58,20 +72,25 @@ class afonya_module extends CModule
         return false;
     }
 
-    public function InstallDB(): bool
+    public function InstallDB()
     {
-        return false;
+        Loader::includeModule($this->MODULE_ID);
+        if (!Application::getConnection()->isTableExists(
+            Base::getInstance('\Afonya\Module\LogTable')->getDBTableName()
+        )) {
+            LogTable::getEntity()->createDbTable();
+        }
     }
 
     public function InstallEvents(): bool
     {
-        EventManager::getInstance()->registerEventHandler(
-            'main',
-            'OnBeforeEndBufferContent',
-            $this->MODULE_ID,
-            'afonya\ToTop\Main',
-            'appendScriptsToPage'
-        );
+        //        EventManager::getInstance()->registerEventHandler(
+        //            'main',
+        //            'OnBeforeEndBufferContent',
+        //            $this->MODULE_ID,
+        //            '\afonya\module\Main',
+        //            'eventHandler'
+        //        );
         return false;
     }
 
@@ -79,15 +98,16 @@ class afonya_module extends CModule
     {
         global $APPLICATION;
 
-        $this->UnInstallFiles();
-        $this->UnInstallDB();
-        $this->UnInstallEvents();
-
+        if (Loader::includeModule($this->MODULE_ID)) {
+            $this->UnInstallDB();
+            $this->UnInstallFiles();
+            $this->UnInstallEvents();
+        }
         ModuleManager::unRegisterModule($this->MODULE_ID);
 
         $APPLICATION->IncludeAdminFile(
             Loc::getMessage('AFONYA_UNINSTALL_TITLE') . ' \'' . Loc::getMessage('AFONYA_NAME') . '\'',
-            __DIR__ . '/unstep.php'
+            __DIR__ . '/unset.php'
         );
 
         return false;
@@ -106,22 +126,28 @@ class afonya_module extends CModule
         return false;
     }
 
-    public function UnInstallDB(): bool
+    public function UnInstallDB()
     {
-        Option::delete($this->MODULE_ID);
+        if (Application::getConnection()->isTableExists(
+            Base::getInstance('\Afonya\Module\LogTable')->getDBTableName()
+        )) {
+            $connection = Application::getInstance()->getConnection();
+            $connection->dropTable(LogTable::getTableName());
+        }
 
-        return false;
+
+        Option::delete($this->MODULE_ID);
     }
 
     public function UnInstallEvents(): bool
     {
-        EventManager::getInstance()->unRegisterEventHandler(
-            'main',
-            'OnBeforeEndBufferContent',
-            $this->MODULE_ID,
-            'AFONYA\ToTop\Main',
-            'appendScriptsToPage'
-        );
+        //        EventManager::getInstance()->unRegisterEventHandler(
+        //            'main',
+        //            'OnBeforeEndBufferContent',
+        //            $this->MODULE_ID,
+        //            '\afonya\module\Main',
+        //            'eventHandler'
+        //        );
 
         return false;
     }
