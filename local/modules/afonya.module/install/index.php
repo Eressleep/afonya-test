@@ -2,12 +2,17 @@
 
 use Afonya\Module\LogTable;
 use Bitrix\Main\Application;
+use Bitrix\Main\ArgumentException;
+use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\Config\Option;
+use Bitrix\Main\DB\SqlQueryException;
 use Bitrix\Main\Entity\Base;
 use Bitrix\Main\IO\Directory;
 use Bitrix\Main\Loader;
+use Bitrix\Main\LoaderException;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
+use Bitrix\Main\SystemException;
 
 class afonya_module extends CModule
 {
@@ -38,6 +43,9 @@ class afonya_module extends CModule
 
     /**
      * @return bool
+     * @throws ArgumentException
+     * @throws LoaderException
+     * @throws SystemException
      */
     public function DoInstall(): bool
     {
@@ -72,6 +80,11 @@ class afonya_module extends CModule
         return false;
     }
 
+    /**
+     * @throws LoaderException
+     * @throws ArgumentException
+     * @throws SystemException
+     */
     public function InstallDB()
     {
         Loader::includeModule($this->MODULE_ID);
@@ -94,6 +107,9 @@ class afonya_module extends CModule
         return false;
     }
 
+    /**
+     * @throws LoaderException
+     */
     public function DoUninstall(): bool
     {
         global $APPLICATION;
@@ -126,6 +142,12 @@ class afonya_module extends CModule
         return false;
     }
 
+    /**
+     * @throws ArgumentNullException
+     * @throws ArgumentException
+     * @throws SqlQueryException
+     * @throws SystemException
+     */
     public function UnInstallDB()
     {
         if (Application::getConnection()->isTableExists(
