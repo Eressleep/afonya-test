@@ -38,7 +38,10 @@ class Handler
     {
         return
             LogTable::getList([
-                'filter' => ['NEWS_ID' => $newsId],
+                'filter' => [
+                    'NEWS_ID' => $newsId,
+                    'USER_ID' => CurrentUser::get()->getId(),
+                ],
             ])->fetchAll();
     }
 
@@ -63,10 +66,6 @@ class Handler
             } catch (ObjectException $e) {
             } catch (Exception $e) {
             }
-
-            if (!$status->isSuccess()) {
-                // TODO: придумать исключение
-            }
         }
     }
 
@@ -82,16 +81,26 @@ class Handler
         if (self::$newsIblock == $arFields['IBLOCK_ID']) {
             $news = self::checkAvailability($arFields['ID'])[0];
             try {
-                $status = LogTable::update(
-                    $news['ID'],
-                    [
-                        'CHANGING' => ++$news['CHANGING'],
-                    ]
-                );
+                if ($news['USER_ID'] == CurrentUser::get()->getId()) {
+                    $status = LogTable::update(
+                        $news['ID'],
+                        [
+                            'CHANGING' => ++$news['CHANGING'],
+                        ]
+                    );
+                } else {
+                    if (count(self::checkAvailability($arFields['RESULT'])) == 0) {
+                        $status = LogTable::add([
+                            'ADDING'       => 0,
+                            'CHANGING'     => 1,
+                            'DELETING'     => 0,
+                            'NEWS_ID'      => $arFields['RESULT'],
+                            'USER_ID'      => CurrentUser::get()->getId(),
+                            'PUBLISH_DATE' => self::getCurrentTime(),
+                        ]);
+                    }
+                }
             } catch (Exception $e) {
-            }
-            if (!$status->isSuccess()) {
-                // TODO: придумать исключение
             }
         }
     }
@@ -112,9 +121,6 @@ class Handler
                     'DELETING' => 1,
                 ]
             );
-            if (!$status->isSuccess()) {
-                // TODO: придумать исключение
-            }
         }
     }
 }
