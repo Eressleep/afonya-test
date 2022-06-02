@@ -1,5 +1,6 @@
 <?php
 
+use Afonya\Module\Handler;
 use Afonya\Module\LogTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
@@ -7,7 +8,7 @@ use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\DB\SqlQueryException;
 use Bitrix\Main\Entity\Base;
-use Bitrix\Main\IO\Directory;
+use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 use Bitrix\Main\LoaderException;
 use Bitrix\Main\Localization\Loc;
@@ -59,8 +60,6 @@ class afonya_module extends CModule
                 $this->InstallEvents();
                 $this->InstallFiles();
             }
-
-            $this->InstallEvents();
         } else {
             $APPLICATION->ThrowException(
                 Loc::getMessage('AFONYA_INSTALL_ERROR_VERSION')
@@ -89,7 +88,7 @@ class afonya_module extends CModule
     {
         Loader::includeModule($this->MODULE_ID);
         if (!Application::getConnection()->isTableExists(
-            Base::getInstance('\Afonya\Module\LogTable')->getDBTableName()
+            Base::getInstance(LogTable::getEntity()->getDataClass())->getDBTableName()
         )) {
             LogTable::getEntity()->createDbTable();
         }
@@ -97,18 +96,37 @@ class afonya_module extends CModule
 
     public function InstallEvents(): bool
     {
-        //        EventManager::getInstance()->registerEventHandler(
-        //            'main',
-        //            'OnBeforeEndBufferContent',
-        //            $this->MODULE_ID,
-        //            '\afonya\module\Main',
-        //            'eventHandler'
-        //        );
+        EventManager::getInstance()->registerEventHandler(
+            'iblock',
+            'OnAfterIBlockElementAdd',
+            $this->MODULE_ID,
+            Handler::class,
+            'create'
+        );
+        EventManager::getInstance()->registerEventHandler(
+            'iblock',
+            'OnAfterIBlockElementUpdate',
+            $this->MODULE_ID,
+            Handler::class,
+            'change'
+        );
+        EventManager::getInstance()->registerEventHandler(
+            'iblock',
+            'OnAfterIBlockElementDelete',
+            $this->MODULE_ID,
+            Handler::class,
+            'delete'
+        );
         return false;
     }
 
     /**
+     * @return bool
+     * @throws ArgumentException
+     * @throws ArgumentNullException
      * @throws LoaderException
+     * @throws SqlQueryException
+     * @throws SystemException
      */
     public function DoUninstall(): bool
     {
@@ -131,14 +149,6 @@ class afonya_module extends CModule
 
     public function UnInstallFiles(): bool
     {
-        Directory::deleteDirectory(
-            Application::getDocumentRoot() . '/bitrix/js/' . $this->MODULE_ID
-        );
-
-        Directory::deleteDirectory(
-            Application::getDocumentRoot() . '/bitrix/css/' . $this->MODULE_ID
-        );
-
         return false;
     }
 
@@ -151,25 +161,38 @@ class afonya_module extends CModule
     public function UnInstallDB()
     {
         if (Application::getConnection()->isTableExists(
-            Base::getInstance('\Afonya\Module\LogTable')->getDBTableName()
+            Base::getInstance(LogTable::getEntity()->getDataClass())->getDBTableName()
         )) {
             $connection = Application::getInstance()->getConnection();
             $connection->dropTable(LogTable::getTableName());
         }
-
 
         Option::delete($this->MODULE_ID);
     }
 
     public function UnInstallEvents(): bool
     {
-        //        EventManager::getInstance()->unRegisterEventHandler(
-        //            'main',
-        //            'OnBeforeEndBufferContent',
-        //            $this->MODULE_ID,
-        //            '\afonya\module\Main',
-        //            'eventHandler'
-        //        );
+        EventManager::getInstance()->unRegisterEventHandler(
+            'iblock',
+            'OnAfterIBlockElementAdd',
+            $this->MODULE_ID,
+            Handler::class,
+            'create'
+        );
+        EventManager::getInstance()->unRegisterEventHandler(
+            'iblock',
+            'OnAfterIBlockElementUpdate',
+            $this->MODULE_ID,
+            Handler::class,
+            'change'
+        );
+        EventManager::getInstance()->unRegisterEventHandler(
+            'iblock',
+            'OnBeforeIBlockElementDelete',
+            $this->MODULE_ID,
+            Handler::class,
+            'delete'
+        );
 
         return false;
     }

@@ -37,21 +37,24 @@ class LogTable extends Entity\DataManager
                     'title'        => Loc::getMessage('AFONYA_LOG_TABLE_ID'),
                 ]
             ),
-            new Entity\BooleanField(
+
+            //TODO: bool
+            new Entity\IntegerField(
                 'ADDING',
                 [
                     'required' => true,
                     'title'    => Loc::getMessage('AFONYA_LOG_TABLE_ADDING'),
                 ]
             ),
-            new Entity\BooleanField(
+            new Entity\IntegerField(
                 'CHANGING',
                 [
                     'required' => true,
                     'title'    => Loc::getMessage('AFONYA_LOG_TABLE_CHANGING'),
                 ]
             ),
-            new Entity\BooleanField(
+            //TODO: bool
+            new Entity\IntegerField(
                 'DELETING',
                 [
                     'required' => true,
