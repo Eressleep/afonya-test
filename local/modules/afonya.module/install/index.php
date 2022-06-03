@@ -59,6 +59,7 @@ class afonya_module extends CModule
                 $this->InstallDB();
                 $this->InstallEvents();
                 $this->InstallFiles();
+                $this->InstallAgent();
             }
         } else {
             $APPLICATION->ThrowException(
@@ -120,6 +121,22 @@ class afonya_module extends CModule
         return false;
     }
 
+    public function InstallAgent(): bool
+    {
+        \CAgent::AddAgent(
+            '\Afonya\Module\Agent::logSent();',
+            'afonya.module',
+//            "N",
+//            86400,
+//            "07.04.2005 20:03:26",
+//            "Y",
+//            "07.04.2005 20:03:26",
+//            30,
+        );
+
+        return false;
+    }
+
     /**
      * @return bool
      * @throws ArgumentException
@@ -136,6 +153,7 @@ class afonya_module extends CModule
             $this->UnInstallDB();
             $this->UnInstallFiles();
             $this->UnInstallEvents();
+            $this->UnInstallAgent();
         }
         ModuleManager::unRegisterModule($this->MODULE_ID);
 
@@ -193,6 +211,12 @@ class afonya_module extends CModule
             Handler::class,
             'delete'
         );
+
+        return false;
+    }
+
+    public function UnInstallAgent() {
+        // TODO: удалить агента
 
         return false;
     }

@@ -55,7 +55,7 @@ class Handler
     {
         if (self::$newsIblock == $arFields['IBLOCK_ID'] and count(self::checkAvailability($arFields['RESULT'])) == 0) {
             try {
-                $status = LogTable::add([
+                LogTable::add([
                     'ADDING'       => 1,
                     'CHANGING'     => 0,
                     'DELETING'     => 0,
@@ -78,23 +78,33 @@ class Handler
      */
     public function change($arFields)
     {
+        $data = LogTable::getList([
+            'select'  => ['*',],
+            'group' => ['NEWS_ID'],
+            ],
+        )->fetchAll();
+        echo '<pre>';
+        print_r($data);
+        echo ' </pre > ';
+        exit();
+
         if (self::$newsIblock == $arFields['IBLOCK_ID']) {
             $news = self::checkAvailability($arFields['ID'])[0];
             try {
                 if ($news['USER_ID'] == CurrentUser::get()->getId()) {
-                    $status = LogTable::update(
+                    LogTable::update(
                         $news['ID'],
                         [
                             'CHANGING' => ++$news['CHANGING'],
                         ]
                     );
                 } else {
-                    if (count(self::checkAvailability($arFields['RESULT'])) == 0) {
-                        $status = LogTable::add([
+                    if (count(self::checkAvailability($arFields['ID'])) == 0) {
+                        LogTable::add([
                             'ADDING'       => 0,
                             'CHANGING'     => 1,
                             'DELETING'     => 0,
-                            'NEWS_ID'      => $arFields['RESULT'],
+                            'NEWS_ID'      => $arFields['ID'],
                             'USER_ID'      => CurrentUser::get()->getId(),
                             'PUBLISH_DATE' => self::getCurrentTime(),
                         ]);
@@ -115,7 +125,7 @@ class Handler
     {
         if (self::$newsIblock == $arFields['IBLOCK_ID']) {
             $news = self::checkAvailability($arFields['ID'])[0];
-            $status = LogTable::update(
+            LogTable::update(
                 $news['ID'],
                 [
                     'DELETING' => 1,
