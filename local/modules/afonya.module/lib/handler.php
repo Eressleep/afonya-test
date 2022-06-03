@@ -21,7 +21,7 @@ class Handler
     /**
      * @throws ObjectException
      */
-    private static function getCurrentTime(): Type\Date
+    public static function getCurrentTime(): Type\Date
     {
         return new Type\Date(
             DateTime::createFromTimestamp(time()),
@@ -78,16 +78,6 @@ class Handler
      */
     public function change($arFields)
     {
-        $data = LogTable::getList([
-            'select'  => ['*',],
-            'group' => ['NEWS_ID'],
-            ],
-        )->fetchAll();
-        echo '<pre>';
-        print_r($data);
-        echo ' </pre > ';
-        exit();
-
         if (self::$newsIblock == $arFields['IBLOCK_ID']) {
             $news = self::checkAvailability($arFields['ID'])[0];
             try {

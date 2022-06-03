@@ -124,14 +124,24 @@ class afonya_module extends CModule
     public function InstallAgent(): bool
     {
         \CAgent::AddAgent(
-            '\Afonya\Module\Agent::logSent();',
+            '\Afonya\Module\Agent::logSentNews();',
             'afonya.module',
-//            "N",
-//            86400,
-//            "07.04.2005 20:03:26",
-//            "Y",
-//            "07.04.2005 20:03:26",
-//            30,
+            'Y',
+            60 * 60 * 24 * 7,
+            '',
+            'Y',
+            '',
+            30,
+        );
+        \CAgent::AddAgent(
+            '\Afonya\Module\Agent::logSentUser();',
+            'afonya.module',
+            'Y',
+            60 * 60 * 24 * 7,
+            '',
+            'Y',
+            '',
+            30,
         );
 
         return false;
@@ -215,8 +225,10 @@ class afonya_module extends CModule
         return false;
     }
 
-    public function UnInstallAgent() {
-        // TODO: удалить агента
+    public function UnInstallAgent()
+    {
+        CAgent::RemoveAgent('\Afonya\Module\Agent::logSentNews();', 'afonya.module');
+        CAgent::RemoveAgent('\Afonya\Module\Agent::logSentUser();', 'afonya.module');
 
         return false;
     }
