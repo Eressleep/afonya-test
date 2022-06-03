@@ -63,8 +63,7 @@ class Handler
                     'USER_ID'      => CurrentUser::get()->getId(),
                     'PUBLISH_DATE' => self::getCurrentTime(),
                 ]);
-            } catch (ObjectException $e) {
-            } catch (Exception $e) {
+            } catch (ObjectException|Exception $e) {
             }
         }
     }

@@ -2,14 +2,18 @@
 
 namespace Afonya\Module;
 
+use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Mail\Event;
+use Bitrix\Main\ObjectException;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
 
 class Agent
 {
 
-    public static function logSentNews()
+    public static function logSentNews(): bool
     {
-        $status = Event::send([
+        Event::send([
             'EVENT_NAME' => 'AFONYA_LOG_NEWS',
             'LID'        => 's1',
             'C_FIELDS'   => [
@@ -21,16 +25,25 @@ class Agent
         return true;
     }
 
-    public static function getLogNews(array $out = [])
+    /**
+     * @param array $out
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function getLogNews(array $out = [], array $data = []): array
     {
-        $data = LogTable::getList([
-            'filter' =>
-                [
-                    '!NEWS_ID'       => 1,
-                    '>=PUBLISH_DATE' => Handler::getCurrentTime()->add('-7 day'),
+        try {
+            $data = LogTable::getList([
+                'filter' =>
+                    [
+                        '!NEWS_ID'       => 1,
+                        '>=PUBLISH_DATE' => Handler::getCurrentTime()->add('-7 day'),
 
-                ],
-        ])->fetchAll();
+                    ],
+            ])->fetchAll();
+        } catch (ObjectPropertyException|ArgumentException|ObjectException|SystemException $e) {
+        }
 
         foreach ($data as $item) {
             $out[$item['NEWS_ID']] = [
@@ -42,9 +55,9 @@ class Agent
         return $out;
     }
 
-    public static function logSentUser()
+    public static function logSentUser(): bool
     {
-        $status = Event::send([
+        Event::send([
             'EVENT_NAME' => 'AFONYA_LOG_USER',
             'LID'        => 's1',
             'C_FIELDS'   => [
@@ -56,15 +69,23 @@ class Agent
         return true;
     }
 
-    public static function getLogUsers(array $out = [])
+    /**
+     * @param array $out
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function getLogUsers(array $out = [], array $data = []): array
     {
-        $data = LogTable::getList([
-            'filter' => [
-                '>=PUBLISH_DATE' => Handler::getCurrentTime()->add('-7 day'),
-                '!NEWS_ID'       => 1,
-            ],
-        ])->fetchAll();
-        $out = [];
+        try {
+            $data = LogTable::getList([
+                'filter' => [
+                    ">=PUBLISH_DATE" => Handler::getCurrentTime()->add('-7 day'),
+                    '!NEWS_ID'       => 1,
+                ],
+            ])->fetchAll();
+        } catch (ObjectPropertyException|SystemException|ObjectException $e) {
+        }
         foreach ($data as $item) {
             $out[$item['USER_ID']]['ACTION'] += (bool)$item['ADDING'] + (bool)$item['CHANGING'] + (bool)$item['DELETING'];
         }
