@@ -77,6 +77,10 @@ class Handler
      */
     public function change($arFields)
     {
+        echo '<pre>';
+        print_r();
+        echo '</pre>';
+        exit();
         if (self::$newsIblock == $arFields['IBLOCK_ID']) {
             $news = self::checkAvailability($arFields['ID'])[0];
             try {
@@ -84,7 +88,8 @@ class Handler
                     LogTable::update(
                         $news['ID'],
                         [
-                            'CHANGING' => ++$news['CHANGING'],
+                            'CHANGING'     => ++$news['CHANGING'],
+                            'PUBLISH_DATE' => self::getCurrentTime(),
                         ]
                     );
                 } else {

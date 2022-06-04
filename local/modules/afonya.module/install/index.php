@@ -126,6 +126,7 @@ class afonya_module extends CModule
      */
     public function InstallAgent(): bool
     {
+
         CAgent::AddAgent(
             '\Afonya\Module\Agent::logSentNews();',
             'afonya.module',
@@ -133,7 +134,7 @@ class afonya_module extends CModule
             60 * 60 * 24 * 7,
             '',
             'Y',
-            '',
+            Handler::getCurrentTime()->add('7 day')->toString(),
             30,
         );
         CAgent::AddAgent(
@@ -143,7 +144,7 @@ class afonya_module extends CModule
             60 * 60 * 24 * 7,
             '',
             'Y',
-            '',
+            Handler::getCurrentTime()->add('7 day')->toString(),
             30,
         );
 
