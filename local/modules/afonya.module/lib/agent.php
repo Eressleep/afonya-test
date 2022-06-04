@@ -88,6 +88,7 @@ class Agent
                     '!NEWS_ID'       => 1,
                     '>=PUBLISH_DATE' => Handler::getCurrentTime()->add('-7 day'),
                 ],
+                // TODO: перенести в log в Entity\ExpressionField
                 'runtime' => [
                     'USER' => [
                         'data_type' => UserTable::class,
