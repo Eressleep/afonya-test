@@ -13,6 +13,7 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\LoaderException;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
+use Bitrix\Main\ObjectException;
 use Bitrix\Main\SystemException;
 
 class afonya_module extends CModule
@@ -123,6 +124,7 @@ class afonya_module extends CModule
 
     /**
      * @return bool
+     * @throws ObjectException
      */
     public function InstallAgent(): bool
     {
