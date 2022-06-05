@@ -119,6 +119,7 @@ class Handler
                 $news['ID'],
                 [
                     'DELETING' => 1,
+                    'PUBLISH_DATE' => self::getCurrentTime(),
                 ]
             );
         }

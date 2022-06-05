@@ -27,16 +27,16 @@ class Agent
     }
 
     /**
-     * @param array $data
+     * @param array $answer
      *
-     * @return int
+     * @return string
      */
-    public static function getLogNews(array $data = []): int
+    public static function getLogNews(array $answer=[]): string
     {
         try {
             $data = LogTable::getList([
                 'select' => [
-                    'NEWS_ID',
+                    '*',
                 ],
                 'filter' =>
                     [
@@ -44,11 +44,25 @@ class Agent
                         '>=PUBLISH_DATE' => Handler::getCurrentTime()->add('-7 day'),
 
                     ],
-                'group'  => ['NEWS_ID'],
             ])->fetchAll();
+            $out = [];
+            foreach ($data as $item)
+            {
+                $out[$item['NEWS_ID']] = [
+                    'ADDING'   => ($out[$item['NEWS_ID']]['ADDING'] + $item['ADDING']) > 0 ? 1 : 0,
+                    'CHANGING' => ($out[$item['NEWS_ID']]['CHANGING'] + $item['CHANGING']) > 0 ? 1 : 0,
+                    'DELETING' => ($out[$item['NEWS_ID']]['DELETING'] + $item['DELETING']) > 0 ? 1 : 0,
+                ];
+            }
+            $answer[] = "Общее количество измененный новостей ".count($out).".";
+            foreach ($out as $key  => $value)
+            {
+                $answer[] = "Новость {$key}. добавлено: {$value['ADDING']}, отредактировано: {$value['CHANGING']},удалено: {$value['DELETING']}.";
+            }
+
         } catch (ObjectPropertyException|ArgumentException|ObjectException|SystemException $e) {
         }
-        return count($data);
+        return implode('<br>', $answer);
     }
 
     public static function logSentUser(): bool
@@ -95,7 +109,8 @@ class Agent
                         'reference' => ['=this.USER_ID' => 'ref.ID'],
                     ],
                 ],
-            ],)->fetchAll();
+            ],
+            )->fetchAll();
         } catch (ObjectPropertyException|SystemException|ObjectException $e) {
         }
         foreach ($data as $item) {
