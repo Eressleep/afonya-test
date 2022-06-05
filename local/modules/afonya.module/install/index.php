@@ -137,7 +137,7 @@ class afonya_module extends CModule
             '',
             'Y',
             Handler::getCurrentTime()->add('7 day')->toString(),
-            30,
+            100,
         );
         CAgent::AddAgent(
             '\Afonya\Module\Agent::logSentUser();',
@@ -147,7 +147,7 @@ class afonya_module extends CModule
             '',
             'Y',
             Handler::getCurrentTime()->add('7 day')->toString(),
-            30,
+            100,
         );
 
         return false;
