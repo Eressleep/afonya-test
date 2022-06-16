@@ -21,10 +21,10 @@ class Handler
     /**
      * @throws ObjectException
      */
-    public static function getCurrentTime(): Type\Date
+    public static function getCurrentTime(int $time = 0): Type\Date
     {
         return new Type\Date(
-            DateTime::createFromTimestamp(time()),
+            DateTime::createFromTimestamp($time == 0 ? time() : $time),
             DateTime::getFormat()
         );
     }
@@ -84,7 +84,8 @@ class Handler
                     LogTable::update(
                         $news['ID'],
                         [
-                            'CHANGING' => ++$news['CHANGING'],
+                            'CHANGING'     => ++$news['CHANGING'],
+                            'PUBLISH_DATE' => self::getCurrentTime(),
                         ]
                     );
                 } else {
@@ -117,7 +118,8 @@ class Handler
             LogTable::update(
                 $news['ID'],
                 [
-                    'DELETING' => 1,
+                    'DELETING'     => 1,
+                    'PUBLISH_DATE' => self::getCurrentTime(),
                 ]
             );
         }

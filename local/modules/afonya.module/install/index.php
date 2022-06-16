@@ -13,6 +13,7 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\LoaderException;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
+use Bitrix\Main\ObjectException;
 use Bitrix\Main\SystemException;
 
 class afonya_module extends CModule
@@ -123,9 +124,11 @@ class afonya_module extends CModule
 
     /**
      * @return bool
+     * @throws ObjectException
      */
     public function InstallAgent(): bool
     {
+
         CAgent::AddAgent(
             '\Afonya\Module\Agent::logSentNews();',
             'afonya.module',
@@ -133,8 +136,8 @@ class afonya_module extends CModule
             60 * 60 * 24 * 7,
             '',
             'Y',
-            '',
-            30,
+            Handler::getCurrentTime()->add('7 day')->toString(),
+            100,
         );
         CAgent::AddAgent(
             '\Afonya\Module\Agent::logSentUser();',
@@ -143,8 +146,8 @@ class afonya_module extends CModule
             60 * 60 * 24 * 7,
             '',
             'Y',
-            '',
-            30,
+            Handler::getCurrentTime()->add('7 day')->toString(),
+            100,
         );
 
         return false;
